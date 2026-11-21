@@ -1,12 +1,12 @@
-
 {
-  "name": "anime-source-inspector",
+  "name": "add-build-scripts",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "build": "node build.mjs"
   },
-  "dependencies": {
-    "cheerio": "^1.1.2"
+  "devDependencies": {
+    "@bytecodealliance/componentize-js": "0.23.0",
+    "@bytecodealliance/jco-transpile": "0.23.0"
   }
 }
