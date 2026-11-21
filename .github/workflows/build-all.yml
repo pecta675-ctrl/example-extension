@@ -33,11 +33,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ matrix.branch }}
+          ref: origin/${{ matrix.branch }}
       - name: Check for build.mjs
         id: check
         run: |
           if [ -f scraper/build.mjs ]; then echo "has_build=true" >> $GITHUB_OUTPUT; else echo "has_build=false" >> $GITHUB_OUTPUT; fi
+      - name: Skip branches without build.mjs
+        if: steps.check.outputs.has_build == 'false'
+        run: |
+          echo "No build.mjs on ${{ matrix.branch }}, skipping."
+          exit 0
       - name: Setup Node
         if: steps.check.outputs.has_build == 'true'
         uses: actions/setup-node@v4
