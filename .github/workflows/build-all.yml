@@ -2,65 +2,116 @@ name: Build All Provider WASMs
 
 on:
   push:
-    branches: [ '**' ]
+    branches:
+      - '**'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   list-branches:
+    name: Discover branches
     runs-on: ubuntu-latest
+
     outputs:
       branches: ${{ steps.list.outputs.branches }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - id: list
+
+      - name: Discover remote branches
+        id: list
+        shell: bash
         run: |
-          branches=""
-          for b in $(git branch -r | grep -v 'HEAD' | sed 's/origin\///' | tr -d ' ' | grep -v '^$'); do
-            if [ -n "$branches" ]; then branches="$branches,\"$b\""; else branches="\"$b\""; fi
-          done
-          echo "branches=[$branches]" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          branches="$(
+            git for-each-ref \
+              --format='%(refname:strip=3)' \
+              refs/remotes/origin |
+            jq -Rsc 'split("\n") | map(select(length > 0 and . != "HEAD"))'
+          )"
+
+          echo "Discovered branches: $branches"
+          echo "branches=$branches" >> "$GITHUB_OUTPUT"
 
   build:
+    name: Build ${{ matrix.branch }}
     needs: list-branches
     runs-on: ubuntu-latest
+
     strategy:
+      fail-fast: false
       max-parallel: 2
       matrix:
         branch: ${{ fromJSON(needs.list-branches.outputs.branches) }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout branch
+        uses: actions/checkout@v5
         with:
-          fetch-depth: 0
-          ref: origin/${{ matrix.branch }}
+          fetch-depth: 1
+          ref: ${{ matrix.branch }}
+
       - name: Check for build.mjs
         id: check
+        shell: bash
         run: |
-          if [ -f scraper/build.mjs ]; then echo "has_build=true" >> $GITHUB_OUTPUT; else echo "has_build=false" >> $GITHUB_OUTPUT; fi
+          if [ -f scraper/build.mjs ]; then
+            echo "has_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_build=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Skip branches without build.mjs
         if: steps.check.outputs.has_build == 'false'
+        env:
+          BRANCH_NAME: ${{ matrix.branch }}
         run: |
-          echo "No build.mjs on ${{ matrix.branch }}, skipping."
-          exit 0
-      - name: Setup Node
+          echo "No scraper/build.mjs found on $BRANCH_NAME."
+          echo "Skipping this branch."
+
+      - name: Setup Node.js
         if: steps.check.outputs.has_build == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
+
       - name: Install dependencies
         if: steps.check.outputs.has_build == 'true'
-        run: |
-          cd scraper
-          npm install
+        working-directory: scraper
+        run: npm install --no-audit --no-fund
+
       - name: Build WASM
         if: steps.check.outputs.has_build == 'true'
+        working-directory: scraper
+        run: node build.mjs
+
+      - name: Prepare artifact name
+        if: steps.check.outputs.has_build == 'true'
+        id: artifact
+        shell: bash
+        env:
+          BRANCH_NAME: ${{ matrix.branch }}
+          JOB_INDEX: ${{ strategy.job-index }}
         run: |
-          cd scraper
-          node build.mjs
-      - name: Upload artifact
+          safe_branch="$(
+            printf '%s' "$BRANCH_NAME" |
+            sed 's/[^A-Za-z0-9._-]/-/g'
+          )"
+
+          echo "name=${safe_branch}-${JOB_INDEX}-wasm" >> "$GITHUB_OUTPUT"
+
+      - name: Upload WASM artifact
         if: steps.check.outputs.has_build == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.branch }}-wasm
+          name: ${{ steps.artifact.outputs.name }}
           path: scraper/*.wasm
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 7
