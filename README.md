@@ -1,33 +1,45 @@
-# AniLife Example.org WASM provider
+# AniLife Providers
 
-A minimal Rust/WIT example for testing AniLife's provider HTTP host function.
+A collection of AniLife WASM provider extensions for multiple anime streaming sites, built with JavaScript ComponentizeJS (`@bytecodealliance/componentize-js@0.23.0`) and the `anilili:provider@1.0.0` WIT contract.
 
-## What it does
+Each provider lives on its own branch and compiles to a `.wasm` component via the GitHub Action workflow (`.github/workflows/build-all.yml`), which builds every branch and publishes the artifacts.
 
-1. AniLife reads provider metadata from the `info` export.
-2. The provider declares `example.org` in its host allowlist.
-3. When AniLife calls `servers` for an episode, the provider sends `GET https://example.org/` through AniLife's `http` host function.
-4. It logs the HTTP status and a short body preview.
-5. It returns an empty server list. `example.org` is not a video stream, so this example intentionally does not return a playable source.
+## Providers
+
+| Anime Site | GitHub Branch | Live Site |
+|---|---|---|
+| `animesalt.cx` | [add-animesalt-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animesalt-provider) | [animesalt.cx](https://animesalt.cx/) |
+| `verani.me` | [verani-me](https://github.com/pecta675-ctrl/example-extension/tree/verani-me) | [verani.me](https://verani.me/) |
+| `latanime.org` | [add-latanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-latanime-provider) | [latanime.org](https://latanime.org/) |
+| `animeonline.ninja` | [add-animeonline-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animeonline-provider) | [animeonline.ninja](https://ver2.animeonline.ninja/) |
+| `aniwaves.tv` | [add-animewaves-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animewaves-provider) | [aniwaves.tv](https://aniwaves.tv/) |
+| `watchanimeworld.one` | [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) | [watchanimeworld.one](https://watchanimeworld.one/) |
+| `jkanime.net` | [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) | [jkanime.net](https://jkanime.net/) |
+
+Inline reference:
+
+* `animesalt.cx` -> [add-animesalt-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animesalt-provider) [animesalt.cx](https://animesalt.cx/)
+* `verani.me` -> [verani-me](https://github.com/pecta675-ctrl/example-extension/tree/verani-me) [verani.me](https://verani.me/)
+* `latanime.org` -> [add-latanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-latanime-provider) [latanime.org](https://latanime.org/)
+* `animeonline.ninja` -> [add-animeonline-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animeonline-provider) [animeonline.ninja](https://ver2.animeonline.ninja/)
+* `aniwaves.tv` -> [add-animewaves-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animewaves-provider) [aniwaves.tv](https://aniwaves.tv/)
+* `watchanimeworld.one` -> [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) [watchanimeworld.one](https://watchanimeworld.one/)
+* `jkanime.net` -> [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) [jkanime.net](https://jkanime.net/)
 
 ## Build
 
-Or run the commands manually:
+Each provider branch contains `scraper/build.mjs` (and `build.sh`/`build.bat` helpers). To build a provider manually:
 
 ```bash
-rustup target add wasm32-wasip2
-cargo build --release --target wasm32-wasip2
-wasm-tools component wit target/wasm32-wasip2/release/anilife_example_org_provider.wasm
+cd scraper
+npm install @bytecodealliance/componentize-js@0.23.0 @bytecodealliance/jco-transpile@0.23.0 --save-dev
+node build.mjs
 ```
 
-The compiled file should be:
+The output is `<provider>.wasm` (verified wasm magic bytes `00 61 73 6d 0d 00 01 00`). Import that `.wasm` file into AniLife.
 
-```text
-target/wasm32-wasip2/release/anilife_example_org_provider.wasm
-```
+## ABI
 
-Import that `.wasm` file into AniLife. After importing, open an anime episode so AniLife invokes the provider's `servers` export. Check the app's provider/runtime logs for the `Example.org request completed` message.
+All providers use the WIT package `anilili:provider@1.0.0` with host interface `anilili:provider/host@1.0.0`. World `provider` exports `info` and `servers`.
 
-## ABI note
-
-The WIT package in this sample uses `anilili:provider/host@1.0.0`, one of the host-function namespaces registered by AniLife. Its record shapes mirror the fields passed to and read from the host in `WasmAnimeProviders.kt`. This is a starter example; if your checkout has changed its provider ABI, regenerate/update `wit/provider.wit` to match that exact revision.
+Note: `jkanime.net` is protected by Cloudflare over plain HTTP, so its provider relies on the host `browser-fetch` function rather than `http`.
