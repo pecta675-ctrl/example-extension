@@ -1,0 +1,61 @@
+name: Build All Provider WASMs
+
+on:
+  push:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+jobs:
+  list-branches:
+    runs-on: ubuntu-latest
+    outputs:
+      branches: ${{ steps.list.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: list
+        run: |
+          branches=""
+          for b in $(git branch -r | grep -v 'HEAD' | sed 's/origin\///' | tr -d ' ' | grep -v '^$'); do
+            if [ -n "$branches" ]; then branches="$branches,\"$b\""; else branches="\"$b\""; fi
+          done
+          echo "branches=[$branches]" >> $GITHUB_OUTPUT
+
+  build:
+    needs: list-branches
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        branch: ${{ fromJSON(needs.list-branches.outputs.branches) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.branch }}
+      - name: Check for build.mjs
+        id: check
+        run: |
+          if [ -f scraper/build.mjs ]; then echo "has_build=true" >> $GITHUB_OUTPUT; else echo "has_build=false" >> $GITHUB_OUTPUT; fi
+      - name: Setup Node
+        if: steps.check.outputs.has_build == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        if: steps.check.outputs.has_build == 'true'
+        run: |
+          cd scraper
+          npm install
+      - name: Build WASM
+        if: steps.check.outputs.has_build == 'true'
+        run: |
+          cd scraper
+          node build.mjs
+      - name: Upload artifact
+        if: steps.check.outputs.has_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.branch }}-wasm
+          path: scraper/*.wasm
