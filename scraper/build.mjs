@@ -11,5 +11,5 @@ const { component } = await componentize(source, wit, {
   witPath: path.join(root, 'wit'),
 });
 
-await writeFile(path.join(root, 'animeidhentai.wasm'), component);
+await writeFile(path.join(root, 'hentaihaven.wasm'), component);
 console.log('built', component.length, 'bytes');
