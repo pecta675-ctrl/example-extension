@@ -9,6 +9,22 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: build-all-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROVIDER_BRANCHES: >-
+    feat/provider-hanime
+    feat/provider-lampac
+    feat/provider-juro
+    feat/provider-hentaihand
+    feat/provider-rokuhentai
+    feat/provider-ehentai
+    feat/provider-hentaiv
+    feat/provider-animeidhentai
+    feat/provider-hentaihaven
+
 jobs:
   list-branches:
     name: Discover branches
@@ -16,6 +32,7 @@ jobs:
 
     outputs:
       branches: ${{ steps.list.outputs.branches }}
+      providers: ${{ steps.list.outputs.providers }}
 
     steps:
       - name: Checkout repository
@@ -29,24 +46,42 @@ jobs:
         run: |
           set -euo pipefail
 
+          missing=""
+          for branch in $PROVIDER_BRANCHES; do
+            if ! git rev-parse --verify --quiet "origin/$branch" > /dev/null; then
+              missing="$missing $branch"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "Declared provider branches missing on origin:$missing" >&2
+            exit 1
+          fi
+
           branches="$(
-            git for-each-ref \
-              --format='%(refname:strip=3)' \
-              refs/remotes/origin |
-            jq -Rsc 'split("\n") | map(select(length > 0 and . != "HEAD"))'
+            {
+              git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin
+              printf '%s\n' $PROVIDER_BRANCHES
+            } |
+            jq -Rsc 'split("\n") | map(select(length > 0 and . != "HEAD")) | unique'
           )"
 
+          providers="$(printf '%s\n' $PROVIDER_BRANCHES | jq -Rsc 'split("\n") | map(select(length > 0))')"
+
           echo "Discovered branches: $branches"
+          echo "Provider branches: $providers"
           echo "branches=$branches" >> "$GITHUB_OUTPUT"
+          echo "providers=$providers" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.branch }}
     needs: list-branches
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 4
       matrix:
         branch: ${{ fromJSON(needs.list-branches.outputs.branches) }}
 
@@ -90,6 +125,33 @@ jobs:
         if: steps.check.outputs.has_build == 'true'
         working-directory: scraper
         run: node build.mjs
+
+      - name: Verify provider contract
+        if: steps.check.outputs.has_build == 'true'
+        working-directory: scraper
+        shell: bash
+        env:
+          BRANCH_NAME: ${{ matrix.branch }}
+        run: |
+          set -euo pipefail
+
+          for file in src/index.js wit/provider.wit build.mjs; do
+            if [ ! -f "$file" ]; then
+              echo "$BRANCH_NAME is missing scraper/$file" >&2
+              exit 1
+            fi
+          done
+
+          case "$BRANCH_NAME" in
+            feat/provider-*)
+              count="$(find . -maxdepth 1 -name '*.wasm' -type f | wc -l)"
+              if [ "$count" -lt 1 ]; then
+                echo "$BRANCH_NAME produced no wasm artifact" >&2
+                exit 1
+              fi
+              ls -l ./*.wasm
+              ;;
+          esac
 
       - name: Prepare artifact name
         if: steps.check.outputs.has_build == 'true'
