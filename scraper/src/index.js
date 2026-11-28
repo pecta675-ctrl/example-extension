@@ -1,48 +1,48 @@
 import { http, log } from 'anilili:provider/host@1.0.0';
 
-const hosts = ['lampac.top', 'lampac.online'];
+const base = 'https://juro.tv';
 
 export function info() {
-  return { name: 'Lampac', hosts };
+  return { name: 'Juro', hosts: ['juro.tv'] };
 }
 
 function bytesToString(bytes) {
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
 
-function unique(list) {
-  return Array.from(new Set(list));
+function isMedia(value) {
+  return typeof value === 'string' && /^https?:\/\/[^\s"']+\.(m3u8|mp4)(\?|$)/.test(value);
 }
 
-function mediaUrls(text) {
-  const found = text.match(/https?:\/\/[^\s"'<>\\]+?\.(?:m3u8|mp4)(?:\?[^\s"'<>\\]*)?/g) || [];
-  return unique(found.map((url) => url.replace(/\\\//g, '/')));
+function collect(value, out) {
+  if (isMedia(value)) out.push(value);
+  else if (value && typeof value === 'object') Object.values(value).forEach((item) => collect(item, out));
+  return out;
 }
 
-function fetchPage(url) {
-  const res = http({ method: 'GET', url, headers: [['Accept', 'text/html']], body: undefined });
-  return res && res.status === 200 ? bytesToString(res.body) : '';
+function search(title) {
+  const url = base + '/api/adult/search?q=' + encodeURIComponent(title);
+  const res = http({ method: 'GET', url, headers: [['Accept', 'application/json'], ['Referer', base + '/']], body: undefined });
+  if (!res || res.status !== 200) return [];
+  try {
+    return Array.from(new Set(collect(JSON.parse(bytesToString(res.body)), [])));
+  } catch (e) {
+    return [];
+  }
 }
 
-function query(host, title) {
-  const url = 'https://' + host + '/lite/sisi?title=' + encodeURIComponent(title);
-  return mediaUrls(fetchPage(url));
-}
-
-export function servers(search) {
-  log('Lampac lookup: ' + JSON.stringify(search.titles) + ' ep=' + search.episode);
-  for (const title of search.titles) {
-    for (const host of hosts) {
-      const urls = query(host, title);
-      if (urls.length > 0) {
-        return [{
-          name: 'Lampac',
-          dub: search.dub,
-          headers: [['Referer', 'https://' + host + '/']],
-          streams: urls.map((url) => ({ url, quality: null, format: url.includes('.m3u8') ? 'hls' : 'mp4' })),
-        }];
-      }
+export function servers(query) {
+  log('Juro lookup: ' + JSON.stringify(query.titles) + ' ep=' + query.episode);
+  for (const title of query.titles) {
+    const urls = search(title);
+    if (urls.length > 0) {
+      return [{
+        name: 'Juro',
+        dub: query.dub,
+        headers: [['Referer', base + '/']],
+        streams: urls.map((url) => ({ url, quality: null, format: url.includes('.m3u8') ? 'hls' : 'mp4' })),
+      }];
     }
   }
-  throw new Error('Lampac: no playable source found');
+  throw new Error('Juro: no playable source found');
 }
