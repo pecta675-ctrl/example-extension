@@ -15,6 +15,7 @@ Each provider lives on its own branch and compiles to a `.wasm` component via th
 | `aniwaves.tv` | [add-animewaves-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animewaves-provider) | [aniwaves.tv](https://aniwaves.tv/) |
 | `watchanimeworld.one` | [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) | [watchanimeworld.one](https://watchanimeworld.one/) |
 | `jkanime.net` | [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) | [jkanime.net](https://jkanime.net/) |
+| `hanime.tv` | [feat/provider-hanime](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hanime) | [hanime.tv](https://hanime.tv/) |
 
 Inline reference:
 
@@ -25,6 +26,7 @@ Inline reference:
 * `aniwaves.tv` -> [add-animewaves-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-animewaves-provider) [aniwaves.tv](https://aniwaves.tv/)
 * `watchanimeworld.one` -> [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) [watchanimeworld.one](https://watchanimeworld.one/)
 * `jkanime.net` -> [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) [jkanime.net](https://jkanime.net/)
+* `hanime.tv` -> [feat/provider-hanime](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hanime) [hanime.tv](https://hanime.tv/)
 
 ## Build
 
