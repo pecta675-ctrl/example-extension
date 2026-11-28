@@ -16,6 +16,14 @@ Each provider lives on its own branch and compiles to a `.wasm` component via th
 | `watchanimeworld.one` | [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) | [watchanimeworld.one](https://watchanimeworld.one/) |
 | `jkanime.net` | [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) | [jkanime.net](https://jkanime.net/) |
 | `hanime.tv` | [feat/provider-hanime](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hanime) | [hanime.tv](https://hanime.tv/) |
+| `lampac` | [feat/provider-lampac](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-lampac) | [lampac.top](https://lampac.top/) |
+| `juro.tv` | [feat/provider-juro](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-juro) | [juro.tv](https://juro.tv/) |
+| `hentaihand.com` | [feat/provider-hentaihand](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaihand) | [hentaihand.com](https://hentaihand.com/) |
+| `rokuhentai.com` | [feat/provider-rokuhentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-rokuhentai) | [rokuhentai.com](https://rokuhentai.com/) |
+| `e-hentai.org` | [feat/provider-ehentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-ehentai) | [e-hentai.org](https://e-hentai.org/) |
+| `hentaiv.net` | [feat/provider-hentaiv](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaiv) | [hentaiv.net](https://hentaiv.net/) |
+| `animeidhentai.com` | [feat/provider-animeidhentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-animeidhentai) | [animeidhentai.com](https://animeidhentai.com/) |
+| `hentaihaven.xxx` | [feat/provider-hentaihaven](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaihaven) | [hentaihaven.xxx](https://hentaihaven.xxx/) |
 
 Inline reference:
 
@@ -27,6 +35,14 @@ Inline reference:
 * `watchanimeworld.one` -> [add-watchanimeworld-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-watchanimeworld-provider) [watchanimeworld.one](https://watchanimeworld.one/)
 * `jkanime.net` -> [add-jkanime-provider](https://github.com/pecta675-ctrl/example-extension/tree/add-jkanime-provider) [jkanime.net](https://jkanime.net/)
 * `hanime.tv` -> [feat/provider-hanime](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hanime) [hanime.tv](https://hanime.tv/)
+* `lampac` -> [feat/provider-lampac](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-lampac) [lampac.top](https://lampac.top/)
+* `juro.tv` -> [feat/provider-juro](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-juro) [juro.tv](https://juro.tv/)
+* `hentaihand.com` -> [feat/provider-hentaihand](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaihand) [hentaihand.com](https://hentaihand.com/)
+* `rokuhentai.com` -> [feat/provider-rokuhentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-rokuhentai) [rokuhentai.com](https://rokuhentai.com/)
+* `e-hentai.org` -> [feat/provider-ehentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-ehentai) [e-hentai.org](https://e-hentai.org/)
+* `hentaiv.net` -> [feat/provider-hentaiv](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaiv) [hentaiv.net](https://hentaiv.net/)
+* `animeidhentai.com` -> [feat/provider-animeidhentai](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-animeidhentai) [animeidhentai.com](https://animeidhentai.com/)
+* `hentaihaven.xxx` -> [feat/provider-hentaihaven](https://github.com/pecta675-ctrl/example-extension/tree/feat/provider-hentaihaven) [hentaihaven.xxx](https://hentaihaven.xxx/)
 
 ## Build
 
