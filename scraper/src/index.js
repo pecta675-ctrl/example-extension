@@ -1,10 +1,10 @@
 import { http, log } from 'anilili:provider/host@1.0.0';
 
-const base = 'https://e-hentai.org';
-const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36';
+const base = 'https://hentaiv.net';
+const searchPaths = ['/search?q=', '/?s='];
 
 export function info() {
-  return { name: 'E-Hentai', hosts: ['e-hentai.org', 'ehgt.org', 'hentaiverse.org'] };
+  return { name: 'HentaiV', hosts: ['hentaiv.net'] };
 }
 
 function bytesToString(bytes) {
@@ -12,7 +12,7 @@ function bytesToString(bytes) {
 }
 
 function get(url) {
-  const res = http({ method: 'GET', url, headers: [['Accept', 'text/html'], ['User-Agent', ua], ['Cookie', 'nw=1']], body: undefined });
+  const res = http({ method: 'GET', url, headers: [['Accept', 'text/html'], ['Referer', base + '/']], body: undefined });
   return res && res.status === 200 ? bytesToString(res.body) : '';
 }
 
@@ -21,26 +21,33 @@ function mediaUrls(text) {
   return Array.from(new Set(found)).slice(0, 10);
 }
 
-function firstGallery(html) {
-  const match = html.match(/https:\/\/e-hentai\.org\/g\/\d+\/[0-9a-f]+\//);
-  return match ? match[0] : null;
+function firstVideoLink(html) {
+  const links = html.match(/href="(https?:\/\/hentaiv\.net\/[^"?#]+)"/g) || [];
+  const skip = /\/(tag|category|genre|page|author|search|dmca|contact|terms|privacy|login|register|feed)\b/i;
+  for (const raw of links) {
+    const url = raw.slice(6, -1);
+    if (!skip.test(url)) return url;
+  }
+  return null;
 }
 
 export function servers(query) {
-  log('E-Hentai lookup: ' + JSON.stringify(query.titles));
+  log('HentaiV lookup: ' + JSON.stringify(query.titles));
   for (const title of query.titles) {
-    const html = get(base + '/?f_search=' + encodeURIComponent(title));
-    const gallery = firstGallery(html);
-    if (!gallery) continue;
-    const urls = mediaUrls(get(gallery) + html);
-    if (urls.length > 0) {
+    for (const prefix of searchPaths) {
+      const html = get(base + prefix + encodeURIComponent(title));
+      if (!html) continue;
+      const pageUrl = firstVideoLink(html);
+      if (!pageUrl) continue;
+      const urls = mediaUrls(get(pageUrl) || html);
+      if (urls.length === 0) continue;
       return [{
-        name: 'E-Hentai',
+        name: 'HentaiV',
         dub: false,
         headers: [['Referer', base + '/']],
         streams: urls.map((url) => ({ url, quality: null, format: url.includes('.m3u8') ? 'hls' : 'mp4' })),
       }];
     }
   }
-  throw new Error('E-Hentai: gallery site exposes images, no video stream');
+  throw new Error('HentaiV: no playable source found');
 }
